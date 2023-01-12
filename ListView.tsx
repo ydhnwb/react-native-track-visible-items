@@ -92,6 +92,7 @@ export default function ListView({
               width: Dimensions.get("window").width,
             }}
           >
+
             <View
               style={{
                 flexDirection: "row",
