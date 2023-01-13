@@ -75,56 +75,60 @@ export default function ListView({
   );
 
   return (
-    <FlatList
-      style={styles.container}
-      data={characters}
-      onViewableItemsChanged={onViewableItemsChanged}
-      viewabilityConfig={{
-        itemVisiblePercentThreshold: 70, // minimal 70% content card ditampilkan, maka akan dihitung threshold time
-        minimumViewTime: 1000, //jika threshold time (waktu dilihat) lebih dari 1 detik, maka akan dianggap "telah dibaca"
-      }}
-      renderItem={({ item, index }) => {
-        return (
-          <View
-            key={item.name}
-            style={{
-              height: 200,
-              width: Dimensions.get("window").width,
-            }}
-          >
 
+    <View>
+      {/* <Text>{_alreadySeen.length}</Text> */}
+      <FlatList
+        style={styles.container}
+        data={characters}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 70, // minimal 70% content card ditampilkan, maka akan dihitung threshold time
+          minimumViewTime: 1000, //jika threshold time (waktu dilihat) lebih dari 1 detik, maka akan dianggap "telah dibaca"
+        }}
+        renderItem={({ item, index }) => {
+          return (
             <View
+              key={item.name}
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                padding: 20,
-                backgroundColor:
-                  index % 2 === 0 ? "rgb(211,191,129)" : "rgb(162, 162, 70)",
+                height: 200,
+                width: Dimensions.get("window").width,
               }}
             >
-              <View style={{ width: Dimensions.get("window").width * 0.33 }}>
-                <Image
-                  source={{ uri: item.picture }}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    resizeMode: "center",
-                  }}
-                />
-              </View>
-              <View style={{ paddingLeft: 10, flex: 1 }}>
-                <Text style={{ fontSize: 20 }}>
-                  {item.name}
-                </Text>
-                {
-                  Boolean(objAlreadySeen.get(item.name)) ? (<Text>Seen</Text>) : <Text>Not seen</Text>
-                }
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: 20,
+                  backgroundColor:
+                    index % 2 === 0 ? "rgb(211,191,129)" : "rgb(162, 162, 70)",
+                }}
+              >
+                <View style={{ width: Dimensions.get("window").width * 0.33 }}>
+                  <Image
+                    source={{ uri: item.picture }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      resizeMode: "center",
+                    }}
+                  />
+                </View>
+                <View style={{ paddingLeft: 10, flex: 1 }}>
+                  <Text style={{ fontSize: 20 }}>
+                    {item.name}
+                  </Text>
+                  {
+                    Boolean(objAlreadySeen.get(item.name)) ? (<Text>Seen</Text>) : <Text>Not seen</Text>
+                  }
+                </View>
               </View>
             </View>
-          </View>
-        );
-      }}
-    />
+          );
+        }}
+      />
+    </View>
   );
 }
 

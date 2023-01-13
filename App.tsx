@@ -8,12 +8,16 @@
  * @format
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Button,
   SafeAreaView,
   StatusBar,
   StyleSheet,
+  Text,
+  TextInput,
   useColorScheme,
+  View,
 } from 'react-native';
 
 import {
@@ -21,6 +25,9 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 import ListView from './ListView';
 import { StarWarsCharacter, useStarWars } from './useStarWars';
+import { io } from "socket.io-client";
+import axios from 'axios'
+import CommentList from './CommentList';
 
 function getAlreadyTracked() {
   // return [{
@@ -30,15 +37,67 @@ function getAlreadyTracked() {
   return [];
 }
 
+
 const App = () => {
   const [caharacters, setCharacters] = useState<StarWarsCharacter[]>([])
-  // const [objAlreadySeen, setObjAlreadySeen] = useState()
+  const [comments, setComments] = useState([])
+  const [userId, setUserId] = useState<string>('')
+  const socket: any = useRef(null);
+
 
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  const stopAndReconnectSocket = () => {
+    if (socket.current != null) {
+      socket.current.off('connect');
+      socket.current.off('disconnect');
+      socket.current.off('update');
+      socket.current.close()
+    }
+
+    socket.current = io('http://10.0.2.2:3000', {
+      query: {
+        userId: userId
+      }
+    });
+
+
+    socket.current.on('connect', () => {
+      console.log('on-connect')
+    });
+
+    socket.current.on('disconnect', () => {
+      console.log('on-disconnect')
+    });
+
+    socket.current.on('update', () => {
+      console.log('on-update')
+    });
+
+    console.log('setting up socket', socket.current.connected)
+
+  }
+
+  const getComments = async () => {
+    const res = await axios.get('http://10.0.2.2:3000/get-comments').then(res => res.data).catch(e => {
+      console.log('axios err', e)
+      return []
+    })
+    setComments(res)
+  }
+
+  const setSeen = (commentId: string) => {
+    console.log('setSeen', commentId)
+    if (socket.current != null) {
+      socket.current.emit('setSeen', commentId)
+    }
+
+  }
+
 
   useEffect(() => {
     const getImgUrl = (resourceUrl: string) => {
@@ -67,10 +126,18 @@ const App = () => {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <ListView
-        characters={caharacters}
-        alreadyTracked={getAlreadyTracked()}
-      />
+      <View style={{ flexDirection: 'row' }}>
+        <View style={{ flex: 1 }}>
+          <TextInput value={userId} onChangeText={setUserId} placeholder='input user id (as loggedin)' />
+        </View>
+        <Button title='Connect' onPress={() => {
+          if (userId) {
+            stopAndReconnectSocket()
+          }
+        }} />
+      </View>
+      <Button title='Fetch comment http' onPress={() => { getComments() }} />
+      <CommentList comments={comments} setSeen={setSeen} userId={userId} />
     </SafeAreaView>
   );
 };
