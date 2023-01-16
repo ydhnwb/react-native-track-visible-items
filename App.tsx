@@ -95,7 +95,12 @@ const App = () => {
     if (socket.current != null) {
       socket.current.emit('setSeen', commentId)
     }
+  }
 
+  const setSeenArray = (ids: { _id: string }[]) => {
+    if (socket.current != null) {
+      socket.current.emit('setSeenArray', JSON.stringify(ids))
+    }
   }
 
 
@@ -137,7 +142,7 @@ const App = () => {
         }} />
       </View>
       <Button title='Fetch comment http' onPress={() => { getComments() }} />
-      <CommentList comments={comments} setSeen={setSeen} userId={userId} />
+      <CommentList comments={comments} setSeen={setSeen} setSeenArray={setSeenArray} userId={userId} />
     </SafeAreaView>
   );
 };
