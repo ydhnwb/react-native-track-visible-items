@@ -31,29 +31,10 @@ export default function CommentList({
     userId
 }: CommentListProps) {
     const firstUnreadItem: IComment | undefined = comments.find((c: IComment) => !c.seenBy || (c.seenBy && c.seenBy.find(id => id == userId) == undefined))
-    const [_firstUnreadItem, _setFirstUnreadItem] = useState<IComment | undefined>(firstUnreadItem)
+
+    const [_firstUnreadItem, _setFirstUnreadItem] = useState<IComment | undefined>()
+    console.log(_firstUnreadItem, '<<<<')
     const [isUnreadCommentsAlreadyPopulated, setUnreadCommentsAlreadyPopulated] = useState<boolean>(false)
-    const [objAlreadySeen, setObjAlreadySeen] = useState(new Map<String, boolean>())
-    const [_alreadySeen, setAlreadySeen] = useState<SeenItem[]>(
-        // initialize state
-        () => {
-            return [].map((item) => {
-                return { [item._id]: item };
-            });
-        }
-    );
-
-    const updateCharacterToBeAlreadySeen = (item: IComment) => {
-        console.log("Update...")
-        if (!objAlreadySeen.get(item._id)) {
-            setObjAlreadySeen(new Map(objAlreadySeen.set(item._id, true)))
-            setSeen(item._id)
-        }
-    }
-
-    const trackItem = (item: IComment) => {
-        updateCharacterToBeAlreadySeen(item)
-    }
 
 
     const onViewableItemsChanged = useCallback(
@@ -61,14 +42,12 @@ export default function CommentList({
             const visibleItems = info.changed.filter((entry) => entry.isViewable);
             // console.log('viewable...', JSON.stringify(visibleItems))
             const isHaveUnread = visibleItems.find((c) => {
-                console.log('visibles', JSON.stringify(visibleItems))
                 let isUnreadBecauseEmpty = !c.item.seenBy
                 if (isUnreadBecauseEmpty) {
                     return true
                 }
                 const isUnreadBecauseNotSeeing = c.item.seenBy.find((id: string) => id == userId)
                 if (isUnreadBecauseNotSeeing) {
-                    console.log('is unread becos id is not there', isUnreadBecauseNotSeeing)
                     return false
                 }
 
@@ -87,30 +66,40 @@ export default function CommentList({
 
     useEffect(() => {
         if (isUnreadCommentsAlreadyPopulated) {
-            console.log('true')
             const unreads = comments.filter((c: IComment) => !Boolean(c.seenBy) || (c.seenBy && c.seenBy.find(id => id == userId) == undefined)).map((c: IComment) => ({ _id: c._id }))
             console.log('Here is unreads:', JSON.stringify(unreads))
             setSeenArray(unreads)
+            console.log('first', _firstUnreadItem)
             _setFirstUnreadItem(undefined)
 
         }
     }, [isUnreadCommentsAlreadyPopulated])
 
+
+    useEffect(() => {
+        //listen for unread first item changes
+        _setFirstUnreadItem((prev) => {
+            const x = comments.find((c: IComment) => !c.seenBy || (c.seenBy && c.seenBy.find(id => id == userId) == undefined))
+            return x
+        })
+    }, [comments])
+
     return (
         <View>
-            <Text>{isUnreadCommentsAlreadyPopulated ? 'true' : 'false'}</Text>
+            {/* <Text>{isUnreadCommentsAlreadyPopulated ? 'true' : 'false'}</Text> */}
             <FlatList
                 contentContainerStyle={{ paddingBottom: 56 }}
                 data={comments}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={{
                     itemVisiblePercentThreshold: 70, // minimal 70% content card ditampilkan, maka akan dihitung threshold time
-                    minimumViewTime: 2000, //jika threshold time (waktu dilihat) lebih dari 1 detik, maka akan dianggap "telah dibaca"
+                    minimumViewTime: 5000, //jika threshold time (waktu dilihat) lebih dari 1 detik, maka akan dianggap "telah dibaca"
                 }}
                 renderItem={({ item, index }) => {
                     return (
                         <View>
                             {
+
                                 _firstUnreadItem && _firstUnreadItem._id == item._id && <UnreadSeparator />
                             }
 
@@ -148,10 +137,6 @@ export default function CommentList({
                                         </Text>
                                         {
                                             item?.seenBy && <Text>Seen by id user: {item.seenBy.join(',')}</Text>
-                                        }
-                                        {
-                                            item?.seenBy && item?.seenBy?.includes(userId) ? <Text>Seen by db/response</Text> :
-                                                Boolean(objAlreadySeen.get(item._id)) ? (<Text>Seen</Text>) : <Text>Not seen</Text>
                                         }
                                     </View>
                                 </View>

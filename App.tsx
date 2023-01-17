@@ -76,6 +76,7 @@ const App = () => {
 
     socket.current.on('update', () => {
       console.log('on-update')
+      getComments()
     });
 
     console.log('setting up socket', socket.current.connected)
