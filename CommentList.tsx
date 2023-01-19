@@ -30,17 +30,13 @@ export default function CommentList({
     setSeenArray,
     userId
 }: CommentListProps) {
-    const firstUnreadItem: IComment | undefined = comments.find((c: IComment) => !c.seenBy || (c.seenBy && c.seenBy.find(id => id == userId) == undefined))
-
     const [_firstUnreadItem, _setFirstUnreadItem] = useState<IComment | undefined>()
-    console.log(_firstUnreadItem, '<<<<')
     const [isUnreadCommentsAlreadyPopulated, setUnreadCommentsAlreadyPopulated] = useState<boolean>(false)
 
 
     const onViewableItemsChanged = useCallback(
         (info: { changed: ViewToken[] }): void => {
             const visibleItems = info.changed.filter((entry) => entry.isViewable);
-            // console.log('viewable...', JSON.stringify(visibleItems))
             const isHaveUnread = visibleItems.find((c) => {
                 let isUnreadBecauseEmpty = !c.item.seenBy
                 if (isUnreadBecauseEmpty) {
@@ -50,8 +46,6 @@ export default function CommentList({
                 if (isUnreadBecauseNotSeeing) {
                     return false
                 }
-
-                console.log('already read')
                 return false
             })
             if (isHaveUnread) {
@@ -77,7 +71,11 @@ export default function CommentList({
 
 
     useEffect(() => {
-        //listen for unread first item changes
+        if (isUnreadCommentsAlreadyPopulated) {
+            //we can ignore if it's already populated. But if you want to keep listen to the unread even
+            // when user is on comments page, I think we should delete this. but finding comments is costly
+            return
+        }
         _setFirstUnreadItem((prev) => {
             const x = comments.find((c: IComment) => !c.seenBy || (c.seenBy && c.seenBy.find(id => id == userId) == undefined))
             return x

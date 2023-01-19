@@ -23,23 +23,16 @@ import {
 import {
   Colors,
 } from 'react-native/Libraries/NewAppScreen';
-import ListView from './ListView';
-import { StarWarsCharacter, useStarWars } from './useStarWars';
 import { io } from "socket.io-client";
 import axios from 'axios'
 import CommentList from './CommentList';
 
 function getAlreadyTracked() {
-  // return [{
-  //   name: "Luke Skywalker",
-  //   picture: ""
-  // }]
   return [];
 }
 
 
 const App = () => {
-  const [caharacters, setCharacters] = useState<StarWarsCharacter[]>([])
   const [comments, setComments] = useState([])
   const [userId, setUserId] = useState<string>('')
   const socket: any = useRef(null);
@@ -59,7 +52,7 @@ const App = () => {
       socket.current.close()
     }
 
-    socket.current = io('http://10.0.2.2:3000', {
+    socket.current = io('http://10.0.2.2:3001', {
       query: {
         userId: userId
       }
@@ -84,7 +77,7 @@ const App = () => {
   }
 
   const getComments = async () => {
-    const res = await axios.get('http://10.0.2.2:3000/get-comments').then(res => res.data).catch(e => {
+    const res = await axios.get('http://10.0.2.2:3001/get-comments').then(res => res.data).catch(e => {
       console.log('axios err', e)
       return []
     })
@@ -103,28 +96,6 @@ const App = () => {
       socket.current.emit('setSeenArray', JSON.stringify(ids))
     }
   }
-
-
-  useEffect(() => {
-    const getImgUrl = (resourceUrl: string) => {
-      const imgUrlBase =
-        "https://starwars-visualguide.com/assets/img/characters/";
-      const filePath =
-        resourceUrl.split("https://swapi.dev/api/people/")[1].slice(0, -1) +
-        ".jpg";
-      return imgUrlBase + filePath;
-    };
-
-    fetch("https://swapi.dev/api/people/")
-      .then((res) => res.json())
-      .then((resp) => {
-        setCharacters(
-          resp.results.map((character: any) => {
-            return { name: character.name, picture: getImgUrl(character.url) };
-          })
-        );
-      });
-  }, []);
 
   return (
     <SafeAreaView style={[backgroundStyle, { flex: 1 }]}>
